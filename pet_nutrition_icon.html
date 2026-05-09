@@ -1,0 +1,164 @@
+
+<style>
+body-override { display: block; }
+#wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 32px;
+  background: #000;
+  border-radius: 16px;
+}
+#iconCanvas {
+  border-radius: 38px;
+  box-shadow: 0 0 60px rgba(180,140,30,0.2);
+}
+#dlBtn {
+  background: transparent;
+  color: #c9a84c;
+  border: 1px solid #c9a84c;
+  padding: 12px 48px;
+  font-size: 11px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: Georgia, serif;
+  border-radius: 2px;
+}
+#dlBtn:hover { background: #c9a84c; color: #000; }
+</style>
+
+<div id="wrap">
+  <canvas id="iconCanvas" width="192" height="192"></canvas>
+  <button id="dlBtn">DOWNLOAD  icon-192.png</button>
+</div>
+
+<script>
+(function(){
+  const cv = document.getElementById('iconCanvas');
+  const btn = document.getElementById('dlBtn');
+
+  function draw(cv, S) {
+    const ctx = cv.getContext('2d');
+    const cx = S/2, cy = S/2;
+
+    ctx.clearRect(0,0,S,S);
+
+    // Background
+    const bgR = S*0.2;
+    ctx.beginPath();
+    ctx.roundRect(0,0,S,S,bgR);
+    ctx.fillStyle = '#060504';
+    ctx.fill();
+
+    // Gold gradient helper
+    function G(x1,y1,x2,y2,op=1){
+      const g=ctx.createLinearGradient(x1,y1,x2,y2);
+      g.addColorStop(0,  `rgba(255,242,160,${op})`);
+      g.addColorStop(0.3,`rgba(212,175,55,${op})`);
+      g.addColorStop(0.65,`rgba(140,100,8,${op})`);
+      g.addColorStop(1,  `rgba(212,175,55,${op})`);
+      return g;
+    }
+
+    // Outer circle — stamp border
+    ctx.strokeStyle = G(0,0,S,S);
+    ctx.lineWidth = S*0.022;
+    ctx.beginPath();
+    ctx.arc(cx,cy,S*0.44,0,Math.PI*2);
+    ctx.stroke();
+
+    // Inner thin circle
+    ctx.strokeStyle = G(0,0,S,S,0.35);
+    ctx.lineWidth = S*0.006;
+    ctx.beginPath();
+    ctx.arc(cx,cy,S*0.375,0,Math.PI*2);
+    ctx.stroke();
+
+    // Two abstract paw stamps
+    function stamp(px,py,ps,rot,op){
+      ctx.save();
+      ctx.translate(px,py);
+      ctx.rotate(rot);
+      ctx.globalAlpha=op;
+      const gold=G(-ps,-ps,ps,ps);
+      // Main pad
+      ctx.beginPath();
+      ctx.arc(0,ps*0.18,ps*0.5,0,Math.PI*2);
+      ctx.fillStyle=gold;
+      ctx.fill();
+      // 4 toe dots
+      const tR=ps*0.17;
+      [[-ps*0.5,-ps*0.36],[-ps*0.15,-ps*0.6],[ps*0.2,-ps*0.6],[ps*0.52,-ps*0.36]].forEach(([tx,ty])=>{
+        ctx.beginPath();
+        ctx.arc(tx,ty,tR,0,Math.PI*2);
+        ctx.fillStyle=gold;
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+
+    stamp(cx-S*0.11, cy-S*0.05, S*0.11,  -0.28, 0.65);
+    stamp(cx+S*0.11, cy+S*0.05, S*0.125,  0.28, 1.0);
+
+    // Top curved text
+    ctx.save();
+    ctx.font=`bold ${S*0.046}px Georgia,serif`;
+    ctx.fillStyle=G(0,cy-S*0.44,0,cy-S*0.26);
+    ctx.textAlign='center';
+    const topText='寵  物  營  養';
+    const r=S*0.32;
+    const sa=-Math.PI*0.6, ta=Math.PI*1.2;
+    [...topText].forEach((ch,i)=>{
+      const a=sa+(ta/([...topText].length-1))*i;
+      ctx.save();
+      ctx.translate(cx+Math.cos(a)*r, cy+Math.sin(a)*r);
+      ctx.rotate(a+Math.PI/2);
+      ctx.fillText(ch,0,0);
+      ctx.restore();
+    });
+    ctx.restore();
+
+    // Bottom curved text
+    ctx.save();
+    ctx.font=`${S*0.031}px Georgia,serif`;
+    ctx.fillStyle=G(0,0,S,S,0.5);
+    const bot='PET · NUTRITION';
+    const br=S*0.32, bs=Math.PI*0.2, be=Math.PI*0.8;
+    [...bot].forEach((ch,i)=>{
+      const a=bs+((be-bs)/([...bot].length-1))*i;
+      ctx.save();
+      ctx.translate(cx+Math.cos(a)*br, cy+Math.sin(a)*br);
+      ctx.rotate(a-Math.PI/2);
+      ctx.textAlign='center';
+      ctx.fillText(ch,0,0);
+      ctx.restore();
+    });
+    ctx.restore();
+
+    // Two separator dots
+    [-1,1].forEach(dir=>{
+      ctx.beginPath();
+      ctx.arc(cx+dir*S*0.27, cy+S*0.315, S*0.011, 0, Math.PI*2);
+      ctx.fillStyle=G(cx-4,cy-4,cx+4,cy+4,0.55);
+      ctx.fill();
+    });
+  }
+
+  draw(cv, 192);
+
+  btn.addEventListener('click', function(){
+    const big = document.createElement('canvas');
+    big.width = big.height = 576;
+    draw(big, 576);
+    const out = document.createElement('canvas');
+    out.width = out.height = 192;
+    out.getContext('2d').drawImage(big,0,0,192,192);
+    const a = document.createElement('a');
+    a.download = 'icon-192.png';
+    a.href = out.toDataURL('image/png');
+    a.click();
+  });
+})();
+</script>
